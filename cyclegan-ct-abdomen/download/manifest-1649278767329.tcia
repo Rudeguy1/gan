@@ -1,0 +1,8 @@
+downloadServerUrl=https://public.cancerimagingarchive.net/nbia-download/servlet/DownloadServlet
+includeAnnotation=true
+noOfrRetry=4
+databasketId=manifest-1649278767329.tcia
+manifestVersion=3.0
+ListOfSeriesToDownload=
+1.3.6.1.4.1.14519.5.2.1.4334.1100.149287153529999184294928933250
+1.3.6.1.4.1.14519.5.2.1.4334.1100.331544964786227339924437941922

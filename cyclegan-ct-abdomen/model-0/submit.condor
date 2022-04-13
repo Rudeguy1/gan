@@ -1,0 +1,26 @@
+
+universe = docker
+docker_image = registry.cvib.ucla.edu/swelland:cyclegan-ct-abdomen
+
+executable = run.sh
+should_transfer_files = YES
+transfer_input_files = run.sh
+#requirements = (OpSys == "LINUX" && Arch == "X86_64")
+#requirements = ( Machine  == "REDLRADADM14959.ad.medctr.ucla.edu" ||  Machine  == "REDLRADADM23621.ad.medctr.ucla.edu")
+
+requirements = Machine  == "REDLRADADM14959.ad.medctr.ucla.edu"
+
+when_to_transfer_output = ON_EXIT
+output = joblog/job.$(cluster).$(process).out
+error = joblog/job.$(cluster).$(process).err
+log = joblog/job.$(cluster).$(process).log
+
+request_cpus = 1
+request_gpus = 1
+#request_memory = 48G
+#request_disk = 5GB
+
+#concurrency_limits = limit1
+
+arguments = "hello world"
+queue
