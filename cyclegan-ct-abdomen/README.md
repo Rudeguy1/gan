@@ -3,7 +3,7 @@
 
 ```
 
-materials used for dicussion with Spensor on his gan project - 2022-03-23
+materials used for dicussion with Spencer on his gan project - 2022-03-23
 ```
 
 + build container - 5min
