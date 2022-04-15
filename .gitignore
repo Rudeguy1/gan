@@ -5,3 +5,4 @@ kidney_contrast_synth/
 logs/
 nn/
 pix2pix3D-CT/
+output.txt

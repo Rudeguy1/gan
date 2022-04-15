@@ -20,15 +20,24 @@ aug_pipeline_aggressive = A.Compose([
 aug_pipeline = A.Compose([
     A.ShiftScaleRotate(p=0.5),
 ])
-MIN_VAL,MAX_VAL = 75,105
+MIN_VAL,MAX_VAL = -1000,1000
 
 class DataLoader():
     def __init__(self, dataset_name, augment=False, img_res=(256,256)):
         
         if dataset_name == 'c4kc-kits':
             self.mydf = pd.read_csv("../prepare/data.csv")
+
         elif dataset_name == 'circles':
             self.mydf = pd.read_csv("../prepare/data_circles.csv")
+
+        elif dataset_name == 'case_10024':
+            cols =['precontrast', 'corticomedullary']
+            # pd df only has 2 columns: pre_contrast and corticomedullary
+            self.mydf = pd.read_csv("/cvib2/apps/personal/gabriel/reg/data.csv", usecols=cols)
+            # precontrast = self.mydf['pre_contrast']
+            # corticomedullary = self.mydf['corticomedullary']
+
         else:
             raise NotImplementedError()
 
@@ -40,13 +49,41 @@ class DataLoader():
         
         if self.dataset_name == 'c4kc-kits':
             path = list(self.mydf[self.mydf.series_description==domain].dcm_file)
+
         elif self.dataset_name == 'circles':
-           
             if domain == 'heterogeneous':
                 path = list(self.mydf[self.mydf["patient-id"].str.contains("50.0")].dcm_file)
+
             else:
                 path = list(self.mydf[~self.mydf["patient-id"].str.contains("50.0")].dcm_file)
+
+        elif self.dataset_name == 'case_10024':
+            # all_slices = []
+            self.pre_slices = [] # use like path
+            self.con_slices = []
+            # path = []
             
+            if domain == 'pre_contrast':
+                seri_list = list(self.mydf.pre_contrast)
+                for seri_file in seri_list:
+                    seri_file = self.mydf
+                    with open(seri_file, 'r') as f:
+                        contents = f.read()
+                    slices = contents.split("\n")
+                    self.pre_slices.extend(slices)
+                    path = list(slices)
+
+            # elif domain == 'corticomedullary':
+            else:
+                seri_list = list(self.mydf.corticomedullary)
+                for seri_file in seri_list:
+                    seri_file = self.mydf
+                    with open(seri_file, 'r') as f:
+                        contents = f.read()
+                    slices = contents.split("\n")
+                    self.con_slices.extend(slices)
+                    path = list(slices)
+
         else:
             raise NotImplementedError()
 
@@ -78,6 +115,13 @@ class DataLoader():
         elif self.dataset_name == 'circles':
             path_A = list(self.mydf[self.mydf["patient-id"].str.contains("50.0")].dcm_file)
             path_B = list(self.mydf[~self.mydf["patient-id"].str.contains("50.0")].dcm_file)
+            
+        elif self.dataset_name == 'case_10024':
+            # path_A = list(self.mydf.pre_contrast)   # does actually aaccess images
+            # path_B = list(self.mydf.corticomedullary)
+
+            path_A = self.pre_slices    # does access the images
+            path_B = self.con_slices
             
         else:
             raise NotImplementedError()
@@ -142,13 +186,32 @@ if __name__ == "__main__":
     
     os.makedirs('static',exist_ok=True)
 
-    dl = DataLoader('circles',augment=True)
+    # dl = DataLoader('circles',augment=True)
     
-    out = dl.load_data("heterogeneous",batch_size=2)
+    # out = dl.load_data("heterogeneous",batch_size=2)
+    # print(out.shape)
+    # assert(out.shape==(2,256,256,1))
+    
+    # out = dl.load_data("homogeneous",batch_size=2)
+    # assert(out.shape==(2,256,256,1))
+    # batch_size = 8
+    # for n,batch in zip(range(1),dl.load_batch(batch_size=batch_size)):
+    #     A, B = batch
+    #     A = (255*(A+1)/2).astype(np.uint8)
+    #     B = (255*(B+1)/2).astype(np.uint8)
+    #     assert(A.shape==(batch_size,256,256,1))
+    #     assert(B.shape==(batch_size,256,256,1))
+    #     for n in range(batch_size):
+    #         imageio.imwrite(f"static/heterogeneous-{n}.png",A[n,:,:].squeeze())
+    #         imageio.imwrite(f"static/homogeneous-{n}.png",B[n,:,:].squeeze())
+
+    dl = DataLoader('case_10024',augment=True)
+    
+    out = dl.load_data("pre_contrast",batch_size=2)
     print(out.shape)
     assert(out.shape==(2,256,256,1))
     
-    out = dl.load_data("homogeneous",batch_size=2)
+    out = dl.load_data("corticomedullary",batch_size=2)
     assert(out.shape==(2,256,256,1))
     batch_size = 8
     for n,batch in zip(range(1),dl.load_batch(batch_size=batch_size)):
@@ -158,8 +221,8 @@ if __name__ == "__main__":
         assert(A.shape==(batch_size,256,256,1))
         assert(B.shape==(batch_size,256,256,1))
         for n in range(batch_size):
-            imageio.imwrite(f"static/heterogeneous-{n}.png",A[n,:,:].squeeze())
-            imageio.imwrite(f"static/homogeneous-{n}.png",B[n,:,:].squeeze())
+            imageio.imwrite(f"static/pre_contrast-{n}.png",A[n,:,:].squeeze())
+            imageio.imwrite(f"static/cortimedullary-{n}.png",B[n,:,:].squeeze())
 
     print("done.")
 
