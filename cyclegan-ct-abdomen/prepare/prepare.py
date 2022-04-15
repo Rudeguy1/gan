@@ -29,7 +29,9 @@ def main(root_folder,csv_file):
 if __name__ == "__main__":
 
     root_folder = sys.argv[1]
-    # root_folder = 
+    # sys.argv[1] looks like --> python prepare.py /radraid/swelland/images/DRO-Toolkit
+    # It is best practice not to hardcode so that the script is the most generalizable possible.
+
     csv_file = 'data.csv'
     # csv_file = 'data_circles.csv'
     main(root_folder,csv_file)
