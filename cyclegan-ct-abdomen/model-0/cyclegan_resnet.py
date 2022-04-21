@@ -20,8 +20,13 @@ from keras.layers import Input, Dense, Reshape, Flatten, Dropout, Concatenate
 from keras.layers import BatchNormalization, Activation, ZeroPadding2D
 from keras.layers.advanced_activations import LeakyReLU
 from keras.layers.convolutional import UpSampling2D, Conv2D
-CUDA_VISIBLE_DEVICES=0 python cyclegan_resnet.py
+CUDA_VISIBLE_DEVICES=7 python cyclegan_resnet.py
 '''
+
+# GPU_CORE = "0"
+# os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
+# os.environ["CUDA_VISIBLE_DEVICES"]=GPU_CORE
+
 from tensorflow import keras
 from tensorflow.keras.models import Model
 from tensorflow.keras.optimizers import Adam
@@ -50,7 +55,7 @@ class CycleGAN():
         self.img_shape = (self.img_rows, self.img_cols, self.channels)
 
         # Configure data loader
-        self.dataset_name = 'circles'
+        self.dataset_name = 'case_10024'
         self.data_loader = DataLoader(dataset_name=self.dataset_name,
                                       img_res=(self.img_rows, self.img_cols),augment=True)
 
@@ -91,6 +96,7 @@ class CycleGAN():
             self.g_AB.summary()
             print("self.d_A")
             self.d_A.summary()
+
         
         w_list = ['saved_model/dA.h5','saved_model/dB.h5','saved_model/AB.h5','saved_model/BA.h5']
         if all([os.path.exists(x) for x in w_list]):
@@ -113,6 +119,7 @@ class CycleGAN():
         # Identity mapping of images
         img_A_id = self.g_BA(img_A)
         img_B_id = self.g_AB(img_B)
+
 
         # For the combined model we will only train the generators
         self.d_A.trainable = False
@@ -144,6 +151,7 @@ class CycleGAN():
             input_img_size=self.img_shape
         )
         return get_resnet_generator(name=name,**kwargs)
+        # print('**********************************BREAK*****************************************')
 
     def build_discriminator(self,name):
         kwargs = dict(
@@ -154,8 +162,10 @@ class CycleGAN():
         return get_discriminator(name=name,**kwargs)
 
     def train(self, epochs, batch_size=1, sample_interval=50):
+        # print('**********************************BREAK*****************************************')
         
         start_time = datetime.datetime.now()
+        # print('**********************************BREAK*****************************************')
         '''
         if np.random.random() > 0.5:
             batch_size = 1
@@ -165,14 +175,20 @@ class CycleGAN():
         
         # Adversarial loss ground truths
         valid = np.ones((batch_size,) + self.disc_patch)
+        # print(valid.shape)
         fake = np.zeros((batch_size,) + self.disc_patch)
+        # print(fake.shape)
+        # print('**********************************BREAK*****************************************')
 
         for epoch in range(epochs):
+            # print('**********************************BREAK*****************************************')
+            # print(epoch)
             for batch_i, (imgs_A, imgs_B) in enumerate(self.data_loader.load_batch(batch_size)):
 
                 # ----------------------
                 #  Train Discriminators
                 # ----------------------
+                # print('**********************************BREAK*****************************************')
 
                 # Translate images to opposite domain
                 #print(imgs_A.shape,imgs_B.shape)
@@ -265,7 +281,6 @@ class CycleGAN():
         fig.savefig("images/%s/%d_%d.png" % (self.dataset_name, epoch, batch_i))
         plt.close()
         self.image_summary_callback.on_epoch_end(epoch,mydict={"img":gen_imgs*255})
-
 
 if __name__ == '__main__':
     gan = CycleGAN()    

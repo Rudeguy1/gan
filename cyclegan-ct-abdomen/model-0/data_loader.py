@@ -26,17 +26,22 @@ class DataLoader():
     def __init__(self, dataset_name, augment=False, img_res=(256,256)):
         
         if dataset_name == 'c4kc-kits':
-            self.mydf = pd.read_csv("../prepare/data.csv")
+            self.mydf = pd.read_csv("../prepare/data_kits.csv")
 
         elif dataset_name == 'circles':
             self.mydf = pd.read_csv("../prepare/data_circles.csv")
 
         elif dataset_name == 'case_10024':
-            cols =['precontrast', 'corticomedullary']
-            # pd df only has 2 columns: pre_contrast and corticomedullary
-            self.mydf = pd.read_csv("/cvib2/apps/personal/gabriel/reg/data.csv", usecols=cols)
-            # precontrast = self.mydf['pre_contrast']
-            # corticomedullary = self.mydf['corticomedullary']
+            cols =['pre_contrast', 'corticomedullary']
+            # cols = ['pre_contrast', 'registered']
+            # open so pd df only has 2 columns: pre_contrast and corticomedullary
+            self.mydf = pd.read_csv("../prepare/data_small.csv", usecols=cols)
+            # self.mydf = pd.read_csv("../prepare/data_small.csv", usecols=cols)
+
+            self.pre_slices = []
+            self.con_slices = []
+
+            # print(self.mydf.head())
 
         else:
             raise NotImplementedError()
@@ -58,35 +63,36 @@ class DataLoader():
                 path = list(self.mydf[~self.mydf["patient-id"].str.contains("50.0")].dcm_file)
 
         elif self.dataset_name == 'case_10024':
-            # all_slices = []
-            self.pre_slices = [] # use like path
-            self.con_slices = []
-            # path = []
-            
             if domain == 'pre_contrast':
                 seri_list = list(self.mydf.pre_contrast)
+                # seri_list = self.pre_slices
                 for seri_file in seri_list:
-                    seri_file = self.mydf
+                    # seri_file = self.mydf
                     with open(seri_file, 'r') as f:
                         contents = f.read()
                     slices = contents.split("\n")
                     self.pre_slices.extend(slices)
-                    path = list(slices)
+                path = list(self.pre_slices)
+                    # print(path)
 
             # elif domain == 'corticomedullary':
             else:
                 seri_list = list(self.mydf.corticomedullary)
+                # seri_list = list(self.mydf.registered)
+                # seri_list = self.con_slices
                 for seri_file in seri_list:
-                    seri_file = self.mydf
+                    # seri_file = self.mydf
                     with open(seri_file, 'r') as f:
                         contents = f.read()
                     slices = contents.split("\n")
                     self.con_slices.extend(slices)
-                    path = list(slices)
+                path = list(self.con_slices)
 
         else:
             raise NotImplementedError()
 
+        # print(len(self.pre_slices), len(self.con_slices))
+        # input("waiting...")
         print(domain, len(path))
 
         batch_images = np.random.choice(path, size=batch_size)
@@ -117,11 +123,28 @@ class DataLoader():
             path_B = list(self.mydf[~self.mydf["patient-id"].str.contains("50.0")].dcm_file)
             
         elif self.dataset_name == 'case_10024':
-            # path_A = list(self.mydf.pre_contrast)   # does actually aaccess images
-            # path_B = list(self.mydf.corticomedullary)
+            # if domain == 'pre_contrast':
+            seri_list = list(self.mydf.pre_contrast)
+            # seri_list = self.pre_slices
+            for seri_file in seri_list:
+                with open(seri_file, 'r') as f:
+                    contents = f.read()
+                slices = contents.split("\n")
+                self.pre_slices.extend(slices)
+            path_A = list(self.pre_slices)
 
-            path_A = self.pre_slices    # does access the images
-            path_B = self.con_slices
+            # elif domain == 'corticomedullary':
+            # else:
+            seri_list = list(self.mydf.corticomedullary)
+
+            # seri_list = list(self.mydf.registered)
+            # seri_list = self.con_slices
+            for seri_file in seri_list:
+                with open(seri_file, 'r') as f:
+                    contents = f.read()
+                slices = contents.split("\n")
+                self.con_slices.extend(slices)
+            path_B = list(self.con_slices)
             
         else:
             raise NotImplementedError()
@@ -129,7 +152,7 @@ class DataLoader():
 
         self.n_batches = int(min(len(path_A), len(path_B)) / batch_size)
         total_samples = self.n_batches * batch_size
-
+        # print(len(path_A), len(path_B), self.n_batches, total_samples)
         # Sample n_batches * batch_size from each path list so that model sees all
         # samples from both domains
         path_A = np.random.choice(path_A, total_samples, replace=False)
@@ -173,7 +196,7 @@ class DataLoader():
         return img[np.newaxis, :, :, :]
 
     def imread(self, path):
-        ds = pydicom.dcmread(path)
+        ds = pydicom.dcmread(path, force=True)
         arr = dcm_util.apply_modality_lut(ds.pixel_array, ds)
         arr = arr.astype(np.float)
         arr = np.expand_dims(arr,axis=-1)   # converts 2D to 3D
@@ -185,6 +208,24 @@ class DataLoader():
 if __name__ == "__main__":
     
     os.makedirs('static',exist_ok=True)
+
+    # dl = DataLoader('c4kc-kits',augment=True)
+    
+    # out = dl.load_data("noncontrast",batch_size=2)
+    # assert(out.shape==(2,256,256,1))
+    
+    # out = dl.load_data("late",batch_size=2)
+    # assert(out.shape==(2,256,256,1))
+    # batch_size = 8
+    # for n,batch in zip(range(1),dl.load_batch(batch_size=batch_size)):
+    #     A, B = batch
+    #     A = (255*(A+1)/2).astype(np.uint8)
+    #     B = (255*(B+1)/2).astype(np.uint8)
+    #     assert(A.shape==(batch_size,256,256,1))
+    #     assert(B.shape==(batch_size,256,256,1))
+    #     for n in range(batch_size):
+    #         imageio.imwrite(f"static/noncontrast-{n}.png",A[n,:,:].squeeze())
+    #         imageio.imwrite(f"static/late-{n}.png",B[n,:,:].squeeze())
 
     # dl = DataLoader('circles',augment=True)
     
@@ -212,6 +253,7 @@ if __name__ == "__main__":
     assert(out.shape==(2,256,256,1))
     
     out = dl.load_data("corticomedullary",batch_size=2)
+    print(out.shape)
     assert(out.shape==(2,256,256,1))
     batch_size = 8
     for n,batch in zip(range(1),dl.load_batch(batch_size=batch_size)):
@@ -222,7 +264,7 @@ if __name__ == "__main__":
         assert(B.shape==(batch_size,256,256,1))
         for n in range(batch_size):
             imageio.imwrite(f"static/pre_contrast-{n}.png",A[n,:,:].squeeze())
-            imageio.imwrite(f"static/cortimedullary-{n}.png",B[n,:,:].squeeze())
+            imageio.imwrite(f"static/corticomedullary-{n}.png",B[n,:,:].squeeze())
 
     print("done.")
 

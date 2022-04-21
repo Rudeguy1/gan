@@ -9,6 +9,8 @@ transfer_input_files = run.sh
 #requirements = ( Machine  == "REDLRADADM14959.ad.medctr.ucla.edu" ||  Machine  == "REDLRADADM23621.ad.medctr.ucla.edu")
 
 requirements = Machine  == "REDLRADADM14959.ad.medctr.ucla.edu"
+#requirements = Machine  == "REDLRADADM14958.ad.medctr.ucla.edu"
+#requirements = Machine == "REDLRADADM23620.ad.medctr.ucla.edu"
 
 when_to_transfer_output = ON_EXIT
 output = joblog/job.$(cluster).$(process).out
