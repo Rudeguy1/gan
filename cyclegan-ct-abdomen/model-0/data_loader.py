@@ -8,6 +8,8 @@ from pydicom.pixel_data_handlers import util as dcm_util
 
 import albumentations as A
 
+import pickle
+
 # https://albumentations-demo.herokuapp.com
 aug_pipeline_aggressive = A.Compose([
     A.ShiftScaleRotate(),
@@ -35,7 +37,7 @@ class DataLoader():
             cols =['pre_contrast', 'corticomedullary']
             # cols = ['pre_contrast', 'registered']
             # open so pd df only has 2 columns: pre_contrast and corticomedullary
-            self.mydf = pd.read_csv("../prepare/data_small.csv", usecols=cols)
+            self.mydf = pd.read_csv("../prepare/case_10024.csv", usecols=cols)
             # self.mydf = pd.read_csv("../prepare/data_small.csv", usecols=cols)
 
             self.pre_slices = []
@@ -65,28 +67,43 @@ class DataLoader():
         elif self.dataset_name == 'case_10024':
             if domain == 'pre_contrast':
                 seri_list = list(self.mydf.pre_contrast)
-                # seri_list = self.pre_slices
+
                 for seri_file in seri_list:
-                    # seri_file = self.mydf
                     with open(seri_file, 'r') as f:
                         contents = f.read()
                     slices = contents.split("\n")
                     self.pre_slices.extend(slices)
-                path = list(self.pre_slices)
-                    # print(path)
 
-            # elif domain == 'corticomedullary':
+                #  creates list of paths to each slice
+                path = []
+                slice_list = list(self.pre_slices)
+                path.extend(filter(None, slice_list))
+                
+                # writes paths to text file (for debugging)
+                # textfile = open('filtered_pre_slices_paths.txt', 'w')
+                # for element in path:
+                #     textfile.write(element + '\n')
+                # textfile.close()
+
             else:
                 seri_list = list(self.mydf.corticomedullary)
-                # seri_list = list(self.mydf.registered)
-                # seri_list = self.con_slices
+
                 for seri_file in seri_list:
-                    # seri_file = self.mydf
                     with open(seri_file, 'r') as f:
                         contents = f.read()
                     slices = contents.split("\n")
                     self.con_slices.extend(slices)
-                path = list(self.con_slices)
+
+                #  creates list of paths to each slice
+                path = []
+                slice_list = list(self.con_slices)
+                path.extend(filter(None, slice_list))
+
+                # writes paths to text file (for debugging)
+                # textfile = open('filtered_con_slices_paths.txt', 'w')
+                # for element in path:
+                #     textfile.write(element + '\n')
+                # textfile.close()
 
         else:
             raise NotImplementedError()
@@ -112,7 +129,6 @@ class DataLoader():
         #print(imgs.shape)
         return imgs
 
-# gets list of paths from circles and taking a few from these pools (line 91 and 92)
     def load_batch(self, batch_size=1):
         if self.dataset_name == 'c4kc-kits':
             path_A = list(self.mydf[self.mydf.series_description=="noncontrast"].dcm_file)
@@ -123,28 +139,34 @@ class DataLoader():
             path_B = list(self.mydf[~self.mydf["patient-id"].str.contains("50.0")].dcm_file)
             
         elif self.dataset_name == 'case_10024':
-            # if domain == 'pre_contrast':
-            seri_list = list(self.mydf.pre_contrast)
-            # seri_list = self.pre_slices
-            for seri_file in seri_list:
-                with open(seri_file, 'r') as f:
-                    contents = f.read()
-                slices = contents.split("\n")
-                self.pre_slices.extend(slices)
-            path_A = list(self.pre_slices)
+            pre_seri_list = list(self.mydf.pre_contrast)
 
-            # elif domain == 'corticomedullary':
-            # else:
-            seri_list = list(self.mydf.corticomedullary)
-
-            # seri_list = list(self.mydf.registered)
-            # seri_list = self.con_slices
-            for seri_file in seri_list:
-                with open(seri_file, 'r') as f:
+            for pre_seri_file in pre_seri_list:
+                with open(pre_seri_file, 'r') as f:
                     contents = f.read()
-                slices = contents.split("\n")
-                self.con_slices.extend(slices)
-            path_B = list(self.con_slices)
+                pre_slices = contents.split("\n")
+                self.pre_slices.extend(pre_slices)
+
+            #  creates list of paths to each slice
+            path_A = []
+            pre_slice_list = list(self.pre_slices)
+            path_A.extend(filter(None, pre_slice_list))
+
+
+
+
+            con_seri_list = list(self.mydf.corticomedullary)
+
+            for con_seri_file in con_seri_list:
+                with open(con_seri_file, 'r') as f:
+                    contents = f.read()
+                con_slices = contents.split("\n")
+                self.con_slices.extend(con_slices)
+
+            #  creates list of paths to each slice
+            path_B = []
+            con_slice_list = list(self.con_slices)
+            path_B.extend(filter(None, con_slice_list))
             
         else:
             raise NotImplementedError()
@@ -197,6 +219,7 @@ class DataLoader():
 
     def imread(self, path):
         ds = pydicom.dcmread(path, force=True)
+        # ds = pydicom.dcmread(path)
         arr = dcm_util.apply_modality_lut(ds.pixel_array, ds)
         arr = arr.astype(np.float)
         arr = np.expand_dims(arr,axis=-1)   # converts 2D to 3D
