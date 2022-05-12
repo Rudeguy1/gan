@@ -19,7 +19,7 @@ log = joblog/job.$(cluster).$(process).log
 
 request_cpus = 1
 request_gpus = 1
-#request_memory = 48G
+request_memory = 39G
 #request_disk = 5GB
 
 #concurrency_limits = limit1

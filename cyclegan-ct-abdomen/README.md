@@ -16,11 +16,12 @@ docker tag cyclegan-ct-abdomen $REMOTE_URL
 docker push $REMOTE_URL
 
 
-docker run -it -v $PWD:/workdir -w /workdir -v /radraid:/radraid -u $(id -u):$(id -g) -p 6006:6006 cyclegan-ct-abdomen bash
+docker run -it -v $PWD:/workdir -w /workdir -v /radraid:/radraid -u $(id -u):$(id -g) -p 7009:7009 cyclegan-ct-abdomen bash
 
 docker run -it -v $PWD:/workdir -w /workdir -v /radraid:/radraid -u $(id -u):$(id -g) -p 6007:6007 cyclegan-ct-abdomen bash
 
 docker run -it -v $PWD:/workdir -w /workdir -v /radraid:/radraid -u $(id -u):$(id -g) -p 6008:6008 cyclegan-ct-abdomen bash
+
 
 ```
 

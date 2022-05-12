@@ -152,9 +152,6 @@ class DataLoader():
             pre_slice_list = list(self.pre_slices)
             path_A.extend(filter(None, pre_slice_list))
 
-
-
-
             con_seri_list = list(self.mydf.corticomedullary)
 
             for con_seri_file in con_seri_list:

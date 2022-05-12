@@ -2,9 +2,9 @@ import cv2
 import os 
 
 # read images
-original = cv2.imread('original.png')
-translated = cv2.imread('translated.png')
-reconstructed = cv2.imread('reconstructed.png')
+original = cv2.imread('orig.png')
+translated = cv2.imread('trans.png')
+reconstructed = cv2.imread('recon.png')
 
 # resize images
 dim = (512, 512)

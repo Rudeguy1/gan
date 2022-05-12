@@ -6,4 +6,8 @@ prepare/case_10024_new.csv
 prepare/case_10024.csv
 prepare/data_small.csv
 model-0/paths_out.py
-
+model-0/images/*
+model-0/saved_model/*
+model-0/images_w_sub_old/*
+model-0/cyclegan_resnet_old.py
+img_samples/*
