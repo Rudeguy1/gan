@@ -13,5 +13,5 @@ condor_submit submit.condor
 
 ```
 
-tensorboard --port=7009 --bind_all --logdir=log 
+tensorboard --port=6009 --bind_all --logdir=log 
 ```
