@@ -27,7 +27,7 @@ if __name__ == '__main__':
             print(n,len(df))
             subject_id = row["Subject ID"]
             study_date = row["Study Date"]
-            series_instance_uid = row["Series ID"]
+            series_instance_uid = row["Series UID"]
 
             file_path = os.path.join(root_folder,subject_id,study_date,series_instance_uid,'img.zip')
             #if os.path.exists(file_path):
